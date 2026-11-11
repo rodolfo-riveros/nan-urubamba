@@ -1,25 +1,74 @@
 {
   "expo": {
-    "name": "tmpapp",
-    "slug": "tmpapp",
+    "name": "Ñan Urubamba",
+    "slug": "nan-urubamba",
+    "scheme": "nanurubamba",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "pe.nanurubamba.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Ñan Urubamba usa tu ubicación para mostrarte lugares cercanos, la distancia a cada uno y en qué sitio arqueológico estás.",
+        "NSCameraUsageDescription": "El modo cámara usa la cámara para ayudarte a identificar el sitio arqueológico que tienes enfrente. No guardamos tus fotos.",
+        "NSPhotoLibraryUsageDescription": "Para adjuntar fotos a tus reseñas o identificar un sitio desde una foto."
+      }
     },
     "android": {
+      "package": "pe.nanurubamba.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#B5462B",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F7F3EE",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "dark": { "backgroundColor": "#141210" }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Ñan Urubamba usa tu ubicación para mostrarte lugares cercanos y la distancia a cada uno."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "El modo cámara te ayuda a identificar el sitio arqueológico que tienes enfrente. No guardamos tus fotos.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Para adjuntar fotos a tus reseñas o identificar un sitio desde una foto."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
     }
   }
 }

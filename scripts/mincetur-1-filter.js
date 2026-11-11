@@ -1,0 +1,12 @@
+const fs=require('fs');
+const raw=fs.readFileSync(process.argv[2],'latin1');
+const lines=raw.split(/\r?\n/).filter(Boolean);
+const hdr=lines[0].split(';');
+const rows=lines.slice(1).map(l=>{const c=l.split(';');const o={};hdr.forEach((h,i)=>o[h]=c[i]);return o;});
+const uru=rows.filter(r=>r['REGIÓN']==='Cusco'&&/^urubamba$/i.test((r.PROVINCIA||'').trim()));
+console.log('total',rows.length,'urubamba',uru.length);
+const cnt={};uru.forEach(r=>{const k=r['CATEGORÍA']+' | '+r['TIPO DE CATEGORÍA'];cnt[k]=(cnt[k]||0)+1});console.log(cnt);
+const d={};uru.forEach(r=>d[r.DISTRITO]=(d[r.DISTRITO]||0)+1);console.log(d);
+const nocoord=uru.filter(r=>!parseFloat(r.LATITUD)||!parseFloat(r.LONGITUD)).length;console.log('sin coords',nocoord);
+fs.writeFileSync(process.argv[3],JSON.stringify(uru,null,1));
+uru.slice(0,400).forEach(r=>console.log([r['CODIGO DEL RECURSO'],r['NOMBRE DEL RECURSO'],r['CATEGORÍA'].slice(0,4),r['SUB TIPO CATEGORÍA'],r.DISTRITO,r.LATITUD,r.LONGITUD].join(' ; ')));
