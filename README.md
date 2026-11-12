@@ -22,8 +22,9 @@ App móvil (React Native + Expo) para que turistas nacionales y extranjeros desc
 ## Prototipo para presentación
 
 - **Probar en Expo Go:** instala *Expo Go* en tu teléfono, ejecuta `npx expo start` en esta carpeta y escanea el QR (misma red Wi-Fi; si no, `npx expo start --tunnel`).
-- **APK (compilado en la nube de Expo, no en tu PC):** `npx eas-cli@latest build -p android --profile preview` → descarga el APK desde https://expo.dev/accounts/rdo0711/projects/nan-urubamba/builds
-- **Sin API keys ni base de datos:** el mapa usa un mapa base libre (CARTO / OpenStreetMap) que se guarda en caché al navegar; las rutas desde tu posición son estimadas; tus reseñas y sugerencias se guardan en el teléfono (cola lista para enviarse cuando se conecte un servidor).
+- **APK listo (compilado en la nube de Expo):** [descargar nan-urubamba.apk](https://expo.dev/artifacts/eas/jBaoMicCMcJa9kxaD_HT82IY6b17VrmCZTWybt2pVRU.apk) · todas las compilaciones: https://expo.dev/accounts/rdo0711/projects/nan-urubamba/builds
+- **Mapa:** en Expo Go usa Google Maps; en el APK (sin API key) usa Leaflet con mapa topográfico de Esri, empaquetado en la app.
+- **Sin API keys ni base de datos:** el mapa no necesita key (Google en Expo Go, Leaflet + Esri en el APK); las rutas desde tu posición son estimadas; tus reseñas y sugerencias se guardan en el teléfono (cola lista para enviarse cuando se conecte un servidor).
 - **Datos reales:** los 67 lugares, descripciones, horarios, rutas y fotos de portada vienen de MINCETUR.
 - **Datos de demostración:** reseñas de ejemplo en ~30 lugares (marcadas "Demo") y hospedajes/restaurantes de ejemplo con imágenes referenciales de Wikimedia Commons. Se desactivan en *Perfil → Datos de demostración*.
 - Créditos de imágenes: *Perfil → Créditos de imágenes* y `src/data/imageCredits.json`.
