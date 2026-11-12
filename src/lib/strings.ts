@@ -304,6 +304,12 @@ export const STRINGS = {
   reportQ: { es: '¿Reportar esta reseña como inapropiada?', en: 'Report this review as inappropriate?' },
   reported: { es: 'Gracias, la revisaremos.', en: 'Thanks, we will review it.' },
 
+  demoData: { es: 'Datos de demostración', en: 'Demo data' },
+  demoDataHint: { es: 'Reseñas de ejemplo para presentaciones. Los lugares siempre son datos oficiales.', en: 'Sample reviews for presentations. Places are always official data.' },
+  demoReview: { es: 'Demo', en: 'Demo' },
+  credits: { es: 'Créditos de imágenes', en: 'Image credits' },
+  localOnly: { es: 'Prototipo: tus reseñas y sugerencias se guardan en este teléfono.', en: 'Prototype: your reviews and suggestions are saved on this phone.' },
+
   // Sistema
   offline: { es: 'Sin conexión. Te mostramos lo que guardaste.', en: "Offline. Showing what you've saved." },
   retry: { es: 'Reintentar', en: 'Retry' },

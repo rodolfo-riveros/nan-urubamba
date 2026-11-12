@@ -5,6 +5,7 @@ import MapView, { Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CategoryBadge, OfflineBanner, PlaceImage } from '@/components/place';
 import { PlaceMarker } from '@/components/PlaceMarker';
+import { BaseMapAttribution, BaseMapLayer, useBaseMapType } from '@/components/BaseMapLayer';
 import { OfflineAttribution, OfflineTileLayer, useOfflineMode } from '@/components/OfflineTileLayer';
 import { Button, Chip, DifficultyBadge, Icon, IconButton, Segmented, T } from '@/components/ui';
 import { CATEGORIES } from '@/data/catalog';
@@ -26,6 +27,7 @@ export default function MapScreen() {
   const params = useLocalSearchParams<{ focus?: string }>();
   const map = useRef<MapView>(null);
   const { mapType: offlineMapType, offline } = useOfflineMode();
+  const baseMapType = useBaseMapType('terrain');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const community = useCommunityPlaces();
@@ -93,10 +95,11 @@ export default function MapScreen() {
         showsCompass={false}
         toolbarEnabled={false}
         customMapStyle={isDark ? DARK_MAP_STYLE : []}
-        mapType={offline ? offlineMapType : 'terrain'}
+        mapType={baseMapType === 'none' ? 'none' : offline ? offlineMapType : 'terrain'}
         onMapReady={fitAll}
         onPress={(e) => e.nativeEvent.action !== 'marker-press' && setSelectedId(null)}
       >
+        <BaseMapLayer />
         <OfflineTileLayer provider={MAP_PROVIDER} />
         {places.map((p) => (
           <PlaceMarker key={p.id} place={p} selected={p.id === selectedId} onPress={() => select(p.id)} />
@@ -110,6 +113,7 @@ export default function MapScreen() {
           />
         ) : null}
       </MapView>
+      <BaseMapAttribution />
 
       {/* Barra superior */}
       <View style={[styles.topBar, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">

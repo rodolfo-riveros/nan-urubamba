@@ -110,6 +110,8 @@ export type Review = {
   lang: Lang;
   photos?: string[];
   mine?: boolean;
+  /** Reseña de demostración (presentaciones) */
+  demo?: boolean;
 };
 
 export type BusinessType = 'hostal' | 'casa' | 'ecolodge' | 'hotel' | 'restaurante' | 'cafe' | 'picanteria';

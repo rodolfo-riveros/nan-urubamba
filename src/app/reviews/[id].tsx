@@ -5,7 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ReviewItem } from '@/components/place';
 import { Button, Chip, EmptyState, Header } from '@/components/ui';
 import { getPlace } from '@/data/places';
-import { deleteMyReview, reportReview, useCommunityReviews } from '@/lib/community';
+import { deleteMyReview, reportReview } from '@/lib/community';
+import { usePlaceReviews } from '@/lib/usePlaceReviews';
 import { useApp } from '@/lib/store';
 import { useTheme } from '@/theme';
 
@@ -18,7 +19,7 @@ export default function Reviews() {
   const insets = useSafeAreaInsets();
   const { t, ratingFor } = useApp();
   const [sort, setSort] = useState<Sort>('recent');
-  const { reviews: community, loading, refresh } = useCommunityReviews(place?.id);
+  const { reviews: community, loading, refresh } = usePlaceReviews(place?.id);
 
   const list = useMemo(() => {
     if (!place) return [];
@@ -63,7 +64,7 @@ export default function Reviews() {
           <ReviewItem
             review={item}
             onDelete={item.mine ? () => confirmDelete(item.id) : undefined}
-            onReport={item.mine ? undefined : () => confirmReport(item.id)}
+            onReport={item.mine || item.demo ? undefined : () => confirmReport(item.id)}
           />
         )}
       />

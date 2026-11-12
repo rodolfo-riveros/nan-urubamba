@@ -22,3 +22,6 @@ export const type = {
 export const space = { xs: 4, s: 8, m: 12, l: 16, xl: 20, xxl: 24 };
 export const radius = { badge: 8, input: 14, card: 18, pill: 999 };
 export const TOUCH = 48;
+
+/** Imagen que cubre todo su contenedor (absoluteFill no estira <Image> en esta versión de RN) */
+export const IMG_FILL = { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' } as const;

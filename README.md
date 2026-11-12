@@ -19,6 +19,15 @@ App móvil (React Native + Expo) para que turistas nacionales y extranjeros desc
 | **Hospedaje y restaurantes** | Por lugar o cerca de ti, con filtros de precio y distancia, WhatsApp y "Cómo llegar". ⚠️ Los registros actuales son **de ejemplo** (`src/data/businesses.ts`): reemplázalos por negocios reales. |
 | **Otros** | Onboarding (idioma, intereses, permisos), guardados, perfil, tema claro/oscuro/automático, accesibilidad (áreas táctiles de 48 px, dificultad siempre con color + texto + icono). |
 
+## Prototipo para presentación
+
+- **Probar en Expo Go:** instala *Expo Go* en tu teléfono, ejecuta `npx expo start` en esta carpeta y escanea el QR (misma red Wi-Fi; si no, `npx expo start --tunnel`).
+- **APK (compilado en la nube de Expo, no en tu PC):** `npx eas-cli@latest build -p android --profile preview` → descarga el APK desde https://expo.dev/accounts/rdo0711/projects/nan-urubamba/builds
+- **Sin API keys ni base de datos:** el mapa usa un mapa base libre (CARTO / OpenStreetMap) que se guarda en caché al navegar; las rutas desde tu posición son estimadas; tus reseñas y sugerencias se guardan en el teléfono (cola lista para enviarse cuando se conecte un servidor).
+- **Datos reales:** los 67 lugares, descripciones, horarios, rutas y fotos de portada vienen de MINCETUR.
+- **Datos de demostración:** reseñas de ejemplo en ~30 lugares (marcadas "Demo") y hospedajes/restaurantes de ejemplo con imágenes referenciales de Wikimedia Commons. Se desactivan en *Perfil → Datos de demostración*.
+- Créditos de imágenes: *Perfil → Créditos de imágenes* y `src/data/imageCredits.json`.
+
 ## Puesta en marcha
 
 ```bash
@@ -37,12 +46,12 @@ npx expo run:android      # o: npx eas-cli@latest build --profile development --
 
 | Variable | Para qué |
 |---|---|
-| `GOOGLE_MAPS_API_KEY` | Mapa de Google (habilita *Maps SDK for Android* e *iOS*). |
+| `GOOGLE_MAPS_API_KEY` | Opcional. Mapa base de Google (*Maps SDK for Android/iOS*). Sin ella se usa el mapa libre CARTO/OSM. |
 | `EXPO_PUBLIC_GOOGLE_DIRECTIONS_KEY` | Rutas reales desde tu posición (*Directions API*). Opcional: sin ella se usa la ruta estimada. |
 | `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Servidor de la comunidad. Sin ellas los aportes quedan en el teléfono. |
 | `EXPO_PUBLIC_OFFLINE_TILE_URL` | Servidor de teselas para mapas offline (por defecto OpenTopoMap). |
 
-### Servidor de la comunidad (Supabase) — pendiente
+### Servidor de la comunidad (Supabase) — opcional, para producción
 
 1. Crea un proyecto en [supabase.com](https://supabase.com) (región São Paulo, cercana a Perú).
 2. **SQL Editor → New query** → pega todo `supabase/schema.sql` → **Run** (se puede ejecutar varias veces; crea tablas, políticas de seguridad RLS y el bucket público `review-photos`).
@@ -56,7 +65,17 @@ Moderación (Table Editor o SQL):
 ## Fuentes de datos y créditos
 
 - **MINCETUR — Inventario Nacional de Recursos Turísticos**, vía [datosabiertos.gob.pe](https://www.datosabiertos.gob.pe/dataset/inventario-nacional-de-recursos-tur%C3%ADsticos), licencia **ODC-BY** (se cita en la app). Fotos de portada tomadas de las fichas oficiales (`consultasenlinea.mincetur.gob.pe`), redimensionadas a 960×640.
-- Mapas offline: © OpenStreetMap contributors, SRTM | © OpenTopoMap (CC-BY-SA).
+- Mapas: © OpenStreetMap contributors · © CARTO · © OpenTopoMap (CC-BY-SA).
+- Imágenes de lugares sin foto oficial y de negocios de ejemplo: Wikimedia Commons (CC0 / CC BY / CC BY-SA), autores en `src/data/imageCredits.json` (`scripts/commons-images.js`).
+
+### Compilar el APK
+
+Se compila en los servidores de Expo (EAS), sin Android Studio:
+
+```bash
+npx eas-cli@latest build -p android --profile preview   # APK para instalar directo
+npx eas-cli@latest build -p android --profile production # AAB para Play Store
+```
 
 ### Actualizar los datos oficiales
 

@@ -1,10 +1,11 @@
 import { useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Chip, Icon, Segmented, T } from '@/components/ui';
 import { CATEGORIES } from '@/data/catalog';
+import CREDITS from '@/data/imageCredits.json';
 import { OFFICIAL_SOURCE } from '@/data/places';
 import { useMyCommunityReviews, useOutboxCount } from '@/lib/community';
 import { useLocation } from '@/lib/location';
@@ -24,6 +25,7 @@ export default function Profile() {
   const [name, setName] = useState(userName);
   const [country, setCountry] = useState(userCountry);
   const [showAbout, setShowAbout] = useState(false);
+  const [showCredits, setShowCredits] = useState(false);
 
   const sinceLabel = new Date(since).toLocaleDateString(lang === 'es' ? 'es-PE' : 'en-US', { month: 'short', year: 'numeric' });
 
@@ -86,6 +88,9 @@ export default function Profile() {
         <Row icon="map-marker-plus-outline" label={t('suggestPlace')} sub={t('suggestPlaceHint')} onPress={() => router.push('/suggest')} />
         <Row icon="cloud-download-outline" label={t('offlineMaps')} sub={t('offlineMapsHint')} onPress={() => router.push('/offline')} last />
       </View>
+      <T v="small" color={c.textSec} style={{ textAlign: 'center', fontFamily: 'PlusJakartaSans_400Regular' }}>
+        {t('localOnly')}
+      </T>
 
       <T v="small" color={c.textSec} style={{ letterSpacing: 1 }}>
         {t('settings')}
@@ -136,6 +141,32 @@ export default function Profile() {
           sub={`${t('location')}: ${loc.status === 'granted' ? t('allowed') : t('denied')} · ${t('camera')}: ${cam?.granted ? t('allowed') : t('denied')}`}
           onPress={() => Linking.openSettings()}
         />
+        <Row icon="presentation" label={t('demoData')} sub={t('demoDataHint')}>
+          <Switch
+            value={app.demoMode}
+            onValueChange={(v) => update({ demoMode: v })}
+            trackColor={{ true: c.secondary, false: c.border }}
+            thumbColor="#FFF"
+          />
+        </Row>
+        <Row icon="image-multiple-outline" label={t('credits')} onPress={() => setShowCredits(!showCredits)}>
+          <Icon name={showCredits ? 'chevron-up' : 'chevron-down'} color={c.textSec} />
+        </Row>
+        {showCredits ? (
+          <View style={{ paddingHorizontal: 16, paddingBottom: 16, gap: 6 }}>
+            <T v="small" color={c.textSec}>
+              {t('dataCredit', { d: OFFICIAL_SOURCE.date })} {t('photoCredit')}.
+            </T>
+            {Object.values(CREDITS).map((cr) => (
+              <Pressable key={cr.url} onPress={() => Linking.openURL(cr.url)}>
+                <T v="small" color={c.textSec} style={{ fontFamily: 'PlusJakartaSans_400Regular' }}>
+                  {cr.title} — {cr.author} ({cr.license}), Wikimedia Commons
+                </T>
+              </Pressable>
+            ))}
+            <T v="small" color={c.textSec}>© OpenStreetMap contributors · © CARTO · © OpenTopoMap</T>
+          </View>
+        ) : null}
         <Row icon="information-outline" label={t('about')} onPress={() => setShowAbout(!showAbout)}>
           <Icon name={showAbout ? 'chevron-up' : 'chevron-down'} color={c.textSec} />
         </Row>

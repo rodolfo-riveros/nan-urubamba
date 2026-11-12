@@ -18,7 +18,7 @@ import { radius, useTheme } from '@/theme';
 export default function Explore() {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
-  const { t, L, lang, update, interests, filters, setFilters, userName } = useApp();
+  const { t, L, lang, update, interests, filters, setFilters, userName, ratingFor } = useApp();
   const loc = useLocation();
   const scroll = useRef<ScrollViewInstance>(null);
 
@@ -31,9 +31,12 @@ export default function Explore() {
   // Con GPS: todo ordenado por cercanía a tu posición actual
   const sorted = useMemo(
     () =>
-      loc.coords
+      (loc.coords
         ? sortByDistance(results, loc.coords)
-        : [...results].sort((a, b) => Number(!!a.estimated) - Number(!!b.estimated) || (b.ratingCount - a.ratingCount)),
+        : [...results].sort((a, b) => Number(!!a.estimated) - Number(!!b.estimated) || b.ratingCount - a.ratingCount)
+      )
+        // Lugares primero; fiestas y tradiciones al final
+        .sort((a, b) => Number(a.kind === 'event') - Number(b.kind === 'event')),
     [results, loc.coords],
   );
   const near = useMemo(
@@ -53,9 +56,11 @@ export default function Explore() {
   const popular = useMemo(
     () =>
       PLACES.filter((p) => p.kind === 'place')
-        .sort((a, b) => b.ratingCount - a.ratingCount || Number(!!a.estimated) - Number(!!b.estimated))
-        .slice(0, 4),
-    [PLACES],
+        .map((p) => ({ p, r: ratingFor(p) }))
+        .sort((a, b) => b.r.count * b.r.rating - a.r.count * a.r.rating || Number(!!a.p.estimated) - Number(!!b.p.estimated))
+        .slice(0, 4)
+        .map((x) => x.p),
+    [PLACES, ratingFor],
   );
 
   const dist = (p: (typeof PLACES)[number]) => (loc.coords ? distanceM(loc.coords, p.coords) : null);

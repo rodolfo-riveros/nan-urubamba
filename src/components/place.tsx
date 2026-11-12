@@ -5,10 +5,11 @@ import React, { useEffect, useState } from 'react';
 import { Image, Linking, Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { categoryOf } from '@/data/catalog';
 import { COVERS } from '@/data/covers';
+import { IMAGES } from '@/data/images';
 import type { Place, Review } from '@/data/types';
 import { formatDistance } from '@/lib/geo';
 import { useApp } from '@/lib/store';
-import { categoryColors, radius, type, useTheme } from '@/theme';
+import { categoryColors, radius, type, useTheme , IMG_FILL } from '@/theme';
 import { Badge, Button, DifficultyBadge, Icon, Stars, T, TipBox } from './ui';
 
 /** Foto del lugar; si no hay foto, un degradado con el icono de la categoría. */
@@ -30,7 +31,7 @@ export function PlaceImage({
   const base = categoryColors[cat] ?? '#2F5D50';
   const r = rounded ? radius.card : 0;
   // 1) portada oficial empaquetada (funciona sin internet) 2) foto remota 3) degradado
-  const bundled = place.official ? COVERS[place.official.code] : undefined;
+  const bundled = place.official ? COVERS[place.official.code] : IMAGES[`place-${place.id}`];
   const remote = place.photos?.[0];
   const source = bundled ?? (remote ? { uri: remote } : undefined);
   const photo = !!source;
@@ -38,9 +39,9 @@ export function PlaceImage({
     <View style={[{ height, borderRadius: r, overflow: 'hidden', backgroundColor: base }, style]}>
       {source ? (
         <>
-          <Image source={source} style={StyleSheet.absoluteFill} resizeMode="cover" accessibilityIgnoresInvertColors />
-          {showCaption && place.official ? (
-            <Text style={[type.small, styles.credit]}>{t('photoCredit')}</Text>
+          <Image source={source} style={IMG_FILL} resizeMode="cover" accessibilityIgnoresInvertColors />
+          {showCaption && bundled ? (
+            <Text style={[type.small, styles.credit]}>{place.official ? t('photoCredit') : 'Foto: Wikimedia Commons'}</Text>
           ) : null}
         </>
       ) : (
@@ -253,6 +254,7 @@ export function ReviewItem({ review, onDelete, onReport }: { review: Review; onD
           <T v="bodyStrong">
             {review.author}
             {review.mine ? ` · ${t('you')}` : ''}
+            {review.demo ? <T v="small" color={c.textSec}>{`  · ${t('demoReview')}`}</T> : null}
           </T>
           <T v="meta" color={c.textSec}>
             {review.country} · {t('visitedOn', { d: monthLabel(review.visitedAt, lang) })}

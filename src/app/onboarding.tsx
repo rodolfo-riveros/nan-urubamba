@@ -1,15 +1,16 @@
 import { useCameraPermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Image , Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { IMAGES } from '@/data/images';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Chip, Icon, T } from '@/components/ui';
 import { CATEGORIES } from '@/data/catalog';
 import type { Category, Lang } from '@/data/types';
 import { useLocation } from '@/lib/location';
 import { useApp } from '@/lib/store';
-import { radius, useTheme } from '@/theme';
+import { radius, useTheme , IMG_FILL } from '@/theme';
 
 export default function Onboarding() {
   const { c } = useTheme();
@@ -28,12 +29,10 @@ export default function Onboarding() {
   if (step === 0) {
     return (
       <View style={{ flex: 1, backgroundColor: '#1E1B18' }}>
-        <LinearGradient colors={['#3C7FA6', '#2F5D50', '#1E1B18']} style={StyleSheet.absoluteFill} />
-        <View style={[styles.snow]}>
-          <Icon name="image-filter-hdr" size={260} color="rgba(255,255,255,0.10)" />
-        </View>
+        <Image source={IMAGES['place-chicon']} style={IMG_FILL} resizeMode="cover" />
+        <LinearGradient colors={['rgba(20,18,16,0.15)', 'rgba(20,18,16,0.35)', 'rgba(20,18,16,0.92)']} style={StyleSheet.absoluteFill} />
         <T v="small" color="rgba(255,255,255,0.7)" style={{ position: 'absolute', top: insets.top + 16, left: 20 }}>
-          {t('photo')} · Nevado Chicón
+          Nevado Chicón · Foto: C. D. Real Ayala (CC BY-SA 4.0)
         </T>
         <View style={[styles.welcome, { paddingBottom: insets.bottom + 24 }]}>
           <T v="display" color="#FFF">
@@ -228,7 +227,6 @@ function PermCard(props: {
 
 const styles = StyleSheet.create({
   welcome: { flex: 1, justifyContent: 'flex-end', paddingHorizontal: 24, gap: 12 },
-  snow: { position: 'absolute', top: 80, alignSelf: 'center' },
   top: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, height: 48 },
   row: { flexDirection: 'row', alignItems: 'center' },
   option: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: radius.card, borderWidth: 2 },

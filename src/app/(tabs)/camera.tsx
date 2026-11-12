@@ -20,7 +20,7 @@ import {
 } from '@/lib/identify';
 import { useLocation } from '@/lib/location';
 import { useApp } from '@/lib/store';
-import { radius, useTheme } from '@/theme';
+import { radius, useTheme , IMG_FILL } from '@/theme';
 
 type Phase = 'aim' | 'identifying' | 'result' | 'fail';
 
@@ -160,7 +160,7 @@ export default function CameraScreen() {
         <TopBar onClose={close} dark={false} />
         {galleryUri && phase !== 'aim' ? (
           <View style={{ flex: 1 }}>
-            <Image source={{ uri: galleryUri }} style={StyleSheet.absoluteFill} />
+            <Image source={{ uri: galleryUri }} style={IMG_FILL} />
             <ResultLayer />
           </View>
         ) : (
@@ -188,7 +188,7 @@ export default function CameraScreen() {
   return (
     <View style={[styles.full, { backgroundColor: '#000' }]}>
       {galleryUri ? (
-        <Image source={{ uri: galleryUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        <Image source={{ uri: galleryUri }} style={IMG_FILL} resizeMode="cover" />
       ) : focused && perm?.granted ? (
         <CameraView style={StyleSheet.absoluteFill} facing="back" />
       ) : (

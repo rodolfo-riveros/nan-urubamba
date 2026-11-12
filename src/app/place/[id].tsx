@@ -4,6 +4,7 @@ import type { ScrollViewInstance } from 'react-native';
 import { Image, Linking, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BaseMapAttribution, BaseMapLayer, useBaseMapType } from '@/components/BaseMapLayer';
 import { OfflineTileLayer, useOfflineMode } from '@/components/OfflineTileLayer';
 import { CategoryBadge, OfflineBanner, PlaceImage, QuickFact, RatingSummary, ReviewItem } from '@/components/place';
 import { Button, Card, DifficultyBadge, EmptyState, Icon, IconButton, SectionTitle, T, TipBox } from '@/components/ui';
@@ -11,7 +12,7 @@ import { CARES, difficultyOf, ROUTE_ICONS } from '@/data/catalog';
 import { getPlace, OFFICIAL_SOURCE } from '@/data/places';
 import { formatDuration, useRouteFrom } from '@/lib/directions';
 import { distanceM, formatDistance, openDirections } from '@/lib/geo';
-import { useCommunityReviews } from '@/lib/community';
+import { usePlaceReviews } from '@/lib/usePlaceReviews';
 import { useLocation } from '@/lib/location';
 import { useZoneStatus } from '@/lib/offlineMaps';
 import { DARK_MAP_STYLE, MAP_PROVIDER } from '@/lib/maps';
@@ -33,9 +34,10 @@ export default function PlaceDetail() {
   const [officialExpanded, setOfficialExpanded] = useState(false);
   const { route, loading: routeLoading } = useRouteFrom(loc.coords, place, lang);
   const { mapType: offlineMapType, offline } = useOfflineMode();
+  const baseMapType = useBaseMapType('terrain');
   const zone = useZoneStatus(place?.id ?? '');
 
-  const { reviews } = useCommunityReviews(place?.id);
+  const { reviews } = usePlaceReviews(place?.id);
 
   if (!place) {
     return (
@@ -230,9 +232,10 @@ export default function PlaceDetail() {
               toolbarEnabled={false}
               showsUserLocation={loc.status === 'granted'}
               customMapStyle={isDark ? DARK_MAP_STYLE : []}
-              mapType={offline ? offlineMapType : 'terrain'}
+              mapType={baseMapType === 'none' ? 'none' : offline ? offlineMapType : 'terrain'}
               onPress={() => router.push({ pathname: '/map', params: { focus: place.id } })}
             >
+              <BaseMapLayer />
               <OfflineTileLayer provider={MAP_PROVIDER} />
               {route ? null : <Marker coordinate={place.origin.coords} title={place.origin.name} pinColor="#2F5D50" />}
               <Marker coordinate={place.coords} title={place.name} pinColor="#B5462B" />
@@ -247,6 +250,7 @@ export default function PlaceDetail() {
                 <Polyline coordinates={[place.origin.coords, place.coords]} strokeColor={c.primary} strokeWidth={3} lineDashPattern={[8, 6]} />
               )}
             </MapView>
+            <BaseMapAttribution />
           </View>
           <View style={[styles.routeCard, { backgroundColor: c.surface, borderColor: c.border }]}>
             <Icon name="navigation-variant" size={22} color={c.water} />

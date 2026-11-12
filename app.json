@@ -44,7 +44,9 @@
           "backgroundColor": "#F7F3EE",
           "image": "./assets/splash-icon.png",
           "imageWidth": 160,
-          "dark": { "backgroundColor": "#141210" }
+          "dark": {
+            "backgroundColor": "#141210"
+          }
         }
       ],
       [
@@ -69,6 +71,18 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "hasGoogleMapsKey": false,
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "8b68d51b-0d59-40bf-b8e9-3e99058c1ea4"
+      }
+    },
+    "owner": "rdo0711"
   }
 }

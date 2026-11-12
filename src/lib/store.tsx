@@ -3,6 +3,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import type { DurationBucket } from '@/data/catalog';
 import { SEED_REVIEWS } from '@/data/seedReviews';
 import { combineRating, useRatingsIndex } from './community';
+import { demoBase } from './demoData';
 import type { Category, Difficulty, District, Lang, LText, Place, Review } from '@/data/types';
 import { STRINGS, type StringKey } from './strings';
 
@@ -35,6 +36,8 @@ type Persisted = {
   userName: string;
   userCountry: string;
   since: string;
+  /** Muestra reseñas de demostración (para presentaciones) */
+  demoMode: boolean;
 };
 
 const DEFAULTS: Persisted = {
@@ -48,6 +51,7 @@ const DEFAULTS: Persisted = {
   userName: '',
   userCountry: 'Perú',
   since: new Date().toISOString(),
+  demoMode: true,
 };
 
 const KEY = 'nan-urubamba/state/v1';
@@ -131,7 +135,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   // Valoración = reseñas reales de la comunidad (servidor + pendientes de envío)
-  const ratingFor = useCallback((p: Place) => combineRating(p, ratingsIndex[p.id]), [ratingsIndex]);
+  const ratingFor = useCallback(
+    (p: Place) => combineRating(state.demoMode ? demoBase(p) : p, ratingsIndex[p.id]),
+    [ratingsIndex, state.demoMode],
+  );
 
   const reset = useCallback(async () => {
     await AsyncStorage.removeItem(KEY);

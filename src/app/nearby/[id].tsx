@@ -1,7 +1,9 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { Image , FlatList, StyleSheet, View } from 'react-native';
+import { IMAGES } from '@/data/images';
 import MapView, { Marker } from 'react-native-maps';
+import { BaseMapAttribution, BaseMapLayer, useBaseMapType } from '@/components/BaseMapLayer';
 import { OfflineTileLayer, useOfflineMode } from '@/components/OfflineTileLayer';
 import { Badge, Button, Chip, EmptyState, Header, Icon, Segmented, T } from '@/components/ui';
 import { BUSINESSES, FOOD_TYPES, LODGING_TYPES } from '@/data/businesses';
@@ -25,6 +27,7 @@ export default function Nearby() {
   const loc = useLocation();
   const [kind, setKind] = useState<Kind>('lodging');
   const { mapType: offlineMapType, offline } = useOfflineMode();
+  const baseMapType = useBaseMapType('standard');
   const [price, setPrice] = useState<number[]>([]);
   const [radiusKm, setRadiusKm] = useState(place ? 5 : 0);
 
@@ -57,14 +60,16 @@ export default function Nearby() {
                 customMapStyle={isDark ? DARK_MAP_STYLE : []}
                 showsUserLocation={loc.status === 'granted'}
                 toolbarEnabled={false}
-                mapType={offline ? offlineMapType : 'standard'}
+                mapType={baseMapType === 'none' ? 'none' : offline ? offlineMapType : 'standard'}
               >
+                <BaseMapLayer />
                 <OfflineTileLayer provider={MAP_PROVIDER} />
                 {place ? <Marker coordinate={place.coords} title={place.name} pinColor="#B5462B" /> : null}
                 {list.map(({ b }) => (
                   <Marker key={b.id} coordinate={b.coords} title={b.name} pinColor={kind === 'lodging' ? '#2F5D50' : '#E3A33B'} />
                 ))}
               </MapView>
+              <BaseMapAttribution />
             </View>
             <Segmented
               options={[
@@ -107,7 +112,16 @@ export default function Nearby() {
 
   function BusinessCard({ b, d, placeMode }: { b: Business; d: number; placeMode: boolean }) {
     return (
-      <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }]}>
+      <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border, padding: 0, overflow: 'hidden' }]}>
+        {IMAGES[`biz-${b.id}`] ? (
+          <View>
+            <Image source={IMAGES[`biz-${b.id}`]} style={{ width: '100%', height: 140 }} resizeMode="cover" />
+            <T v="small" color="#FFF" style={styles.imgCredit}>
+              {lang === 'es' ? 'Imagen referencial' : 'Reference image'}
+            </T>
+          </View>
+        ) : null}
+        <View style={{ padding: 14, gap: 6 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Badge
             label={t(`type_${b.type}` as StringKey).toUpperCase()}
@@ -146,6 +160,7 @@ export default function Nearby() {
             onPress={() => openDirections(b.coords, b.name)}
           />
         </View>
+        </View>
       </View>
     );
   }
@@ -154,5 +169,6 @@ export default function Nearby() {
 const styles = StyleSheet.create({
   map: { height: 170, borderRadius: radius.card, overflow: 'hidden', borderWidth: 1 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  imgCredit: { position: 'absolute', right: 8, bottom: 6, fontSize: 10, lineHeight: 14, backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 6, borderRadius: 6, overflow: 'hidden' },
   card: { padding: 14, borderRadius: radius.card, borderWidth: 1, gap: 6 },
 });
