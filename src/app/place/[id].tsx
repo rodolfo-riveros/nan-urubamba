@@ -2,10 +2,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import type { ScrollViewInstance } from 'react-native';
 import { Image, Linking, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
-import MapView, { Marker, Polyline } from 'react-native-maps';
+import { AppMap } from '@/components/AppMap';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BaseMapAttribution, BaseMapLayer, useBaseMapType } from '@/components/BaseMapLayer';
-import { OfflineTileLayer, useOfflineMode } from '@/components/OfflineTileLayer';
 import { CategoryBadge, OfflineBanner, PlaceImage, QuickFact, RatingSummary, ReviewItem } from '@/components/place';
 import { Button, Card, DifficultyBadge, EmptyState, Icon, IconButton, SectionTitle, T, TipBox } from '@/components/ui';
 import { CARES, difficultyOf, ROUTE_ICONS } from '@/data/catalog';
@@ -15,7 +13,6 @@ import { distanceM, formatDistance, openDirections } from '@/lib/geo';
 import { usePlaceReviews } from '@/lib/usePlaceReviews';
 import { useLocation } from '@/lib/location';
 import { useZoneStatus } from '@/lib/offlineMaps';
-import { DARK_MAP_STYLE, MAP_PROVIDER } from '@/lib/maps';
 import { useApp } from '@/lib/store';
 import { difficultyColors, radius, useTheme } from '@/theme';
 
@@ -33,8 +30,6 @@ export default function PlaceDetail() {
   const [expanded, setExpanded] = useState(false);
   const [officialExpanded, setOfficialExpanded] = useState(false);
   const { route, loading: routeLoading } = useRouteFrom(loc.coords, place, lang);
-  const { mapType: offlineMapType, offline } = useOfflineMode();
-  const baseMapType = useBaseMapType('terrain');
   const zone = useZoneStatus(place?.id ?? '');
 
   const { reviews } = usePlaceReviews(place?.id);
@@ -81,23 +76,6 @@ export default function PlaceDetail() {
     Math.abs(place.origin.coords.latitude - place.coords.latitude) * 1.8,
     Math.abs(place.origin.coords.longitude - place.coords.longitude) * 1.8,
   );
-
-  const routeRegion = route
-    ? (() => {
-        const lats = route.points.map((p) => p.latitude);
-        const lons = route.points.map((p) => p.longitude);
-        const minLa = Math.min(...lats);
-        const maxLa = Math.max(...lats);
-        const minLo = Math.min(...lons);
-        const maxLo = Math.max(...lons);
-        return {
-          latitude: (minLa + maxLa) / 2,
-          longitude: (minLo + maxLo) / 2,
-          latitudeDelta: Math.max(0.01, (maxLa - minLa) * 1.4),
-          longitudeDelta: Math.max(0.01, (maxLo - minLo) * 1.4),
-        };
-      })()
-    : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
@@ -220,37 +198,24 @@ export default function PlaceDetail() {
           <SectionTitle title={t('howToGet')} />
           {/* Ruta desde la posición actual */}
           <View style={[styles.miniMap, { borderColor: c.border, height: 220 }]}>
-            <MapView
-              provider={MAP_PROVIDER}
-              style={StyleSheet.absoluteFill}
-              initialRegion={{ ...mid, latitudeDelta: span, longitudeDelta: span }}
-              region={routeRegion ?? undefined}
-              scrollEnabled={false}
-              zoomEnabled={false}
-              rotateEnabled={false}
-              pitchEnabled={false}
-              toolbarEnabled={false}
-              showsUserLocation={loc.status === 'granted'}
-              customMapStyle={isDark ? DARK_MAP_STYLE : []}
-              mapType={baseMapType === 'none' ? 'none' : offline ? offlineMapType : 'terrain'}
-              onPress={() => router.push({ pathname: '/map', params: { focus: place.id } })}
-            >
-              <BaseMapLayer />
-              <OfflineTileLayer provider={MAP_PROVIDER} />
-              {route ? null : <Marker coordinate={place.origin.coords} title={place.origin.name} pinColor="#2F5D50" />}
-              <Marker coordinate={place.coords} title={place.name} pinColor="#B5462B" />
-              {route ? (
-                <Polyline
-                  coordinates={route.points}
-                  strokeColor={route.kind === 'google' ? c.water : c.primary}
-                  strokeWidth={4}
-                  lineDashPattern={route.kind === 'google' ? undefined : [8, 6]}
-                />
-              ) : (
-                <Polyline coordinates={[place.origin.coords, place.coords]} strokeColor={c.primary} strokeWidth={3} lineDashPattern={[8, 6]} />
-              )}
-            </MapView>
-            <BaseMapAttribution />
+            <AppMap
+              initialRegion={{ ...mid, latitudeDelta: span }}
+              fitCoords={route ? route.points : [place.origin.coords, place.coords]}
+              fitPadding={{ top: 30, right: 30, bottom: 30, left: 30 }}
+              interactive={false}
+              userLocation={loc.status === 'granted' ? loc.coords : null}
+              markers={[
+                ...(route ? [] : [{ id: 'origin', coords: place.origin.coords, color: '#2F5D50', title: place.origin.name }]),
+                { id: 'place', coords: place.coords, color: '#B5462B', title: place.name },
+              ]}
+              lines={[
+                route
+                  ? { coords: route.points, color: route.kind === 'google' ? c.water : c.primary, width: 4, dashed: route.kind !== 'google' }
+                  : { coords: [place.origin.coords, place.coords], color: c.primary, width: 3, dashed: true },
+              ]}
+              onMapPress={() => router.push({ pathname: '/map', params: { focus: place.id } })}
+              onMarkerPress={() => router.push({ pathname: '/map', params: { focus: place.id } })}
+            />
           </View>
           <View style={[styles.routeCard, { backgroundColor: c.surface, borderColor: c.border }]}>
             <Icon name="navigation-variant" size={22} color={c.water} />

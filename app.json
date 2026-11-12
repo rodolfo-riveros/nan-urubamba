@@ -67,6 +67,14 @@
         {
           "photosPermission": "Para adjuntar fotos a tus reseñas o identificar un sitio desde una foto."
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraProguardRules": "# WorkManager / Room: R8 elimina WorkDatabase_Impl y la app se cierra al iniciar\n-keep class androidx.work.** { *; }\n-keep class * extends androidx.room.RoomDatabase { *; }\n-keep class androidx.room.** { *; }\n-keep class androidx.startup.** { *; }\n-dontwarn androidx.work.**"
+          }
+        }
       ]
     ],
     "experiments": {

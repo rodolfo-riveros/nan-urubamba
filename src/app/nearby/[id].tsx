@@ -1,17 +1,14 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Image , FlatList, StyleSheet, View } from 'react-native';
-import { IMAGES } from '@/data/images';
-import MapView, { Marker } from 'react-native-maps';
-import { BaseMapAttribution, BaseMapLayer, useBaseMapType } from '@/components/BaseMapLayer';
-import { OfflineTileLayer, useOfflineMode } from '@/components/OfflineTileLayer';
+import { FlatList, Image, StyleSheet, View } from 'react-native';
+import { AppMap } from '@/components/AppMap';
 import { Badge, Button, Chip, EmptyState, Header, Icon, Segmented, T } from '@/components/ui';
 import { BUSINESSES, FOOD_TYPES, LODGING_TYPES } from '@/data/businesses';
+import { IMAGES } from '@/data/images';
 import { getPlace, TOWNS } from '@/data/places';
 import type { Business } from '@/data/types';
 import { distanceM, formatDistance, openDirections, openWhatsApp } from '@/lib/geo';
 import { useLocation } from '@/lib/location';
-import { DARK_MAP_STYLE, MAP_PROVIDER } from '@/lib/maps';
 import { useApp } from '@/lib/store';
 import type { StringKey } from '@/lib/strings';
 import { radius, useTheme } from '@/theme';
@@ -22,12 +19,10 @@ const RADII = [2, 5, 15, 0]; // km; 0 = cualquiera
 export default function Nearby() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const place = id !== 'all' ? getPlace(id) : undefined;
-  const { c, isDark } = useTheme();
+  const { c } = useTheme();
   const { t, L, lang } = useApp();
   const loc = useLocation();
   const [kind, setKind] = useState<Kind>('lodging');
-  const { mapType: offlineMapType, offline } = useOfflineMode();
-  const baseMapType = useBaseMapType('standard');
   const [price, setPrice] = useState<number[]>([]);
   const [radiusKm, setRadiusKm] = useState(place ? 5 : 0);
 
@@ -53,23 +48,21 @@ export default function Nearby() {
         ListHeaderComponent={
           <View style={{ gap: 12, marginBottom: 4 }}>
             <View style={[styles.map, { borderColor: c.border }]}>
-              <MapView
-                provider={MAP_PROVIDER}
-                style={StyleSheet.absoluteFill}
-                region={{ ...center, latitudeDelta: radiusKm ? radiusKm / 45 : 0.3, longitudeDelta: radiusKm ? radiusKm / 45 : 0.3 }}
-                customMapStyle={isDark ? DARK_MAP_STYLE : []}
-                showsUserLocation={loc.status === 'granted'}
-                toolbarEnabled={false}
-                mapType={baseMapType === 'none' ? 'none' : offline ? offlineMapType : 'standard'}
-              >
-                <BaseMapLayer />
-                <OfflineTileLayer provider={MAP_PROVIDER} />
-                {place ? <Marker coordinate={place.coords} title={place.name} pinColor="#B5462B" /> : null}
-                {list.map(({ b }) => (
-                  <Marker key={b.id} coordinate={b.coords} title={b.name} pinColor={kind === 'lodging' ? '#2F5D50' : '#E3A33B'} />
-                ))}
-              </MapView>
-              <BaseMapAttribution />
+              <AppMap
+                initialRegion={{ ...center, latitudeDelta: radiusKm ? radiusKm / 45 : 0.3 }}
+                region={{ ...center, latitudeDelta: radiusKm ? radiusKm / 45 : 0.3 }}
+                userLocation={loc.status === 'granted' ? loc.coords : null}
+                markers={[
+                  ...(place ? [{ id: 'place', coords: place.coords, color: '#B5462B', title: place.name }] : []),
+                  ...list.map(({ b }) => ({
+                    id: b.id,
+                    coords: b.coords,
+                    color: kind === 'lodging' ? '#2F5D50' : '#E3A33B',
+                    icon: kind === 'lodging' ? 'bed' : 'silverware-fork-knife',
+                    title: b.name,
+                  })),
+                ]}
+              />
             </View>
             <Segmented
               options={[

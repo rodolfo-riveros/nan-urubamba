@@ -1,33 +1,28 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import MapView, { Polyline } from 'react-native-maps';
+import { AppMap, type AppMapHandle } from '@/components/AppMap';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CategoryBadge, OfflineBanner, PlaceImage } from '@/components/place';
-import { PlaceMarker } from '@/components/PlaceMarker';
-import { BaseMapAttribution, BaseMapLayer, useBaseMapType } from '@/components/BaseMapLayer';
-import { OfflineAttribution, OfflineTileLayer, useOfflineMode } from '@/components/OfflineTileLayer';
+import { OfflineAttribution } from '@/components/OfflineTileLayer';
 import { Button, Chip, DifficultyBadge, Icon, IconButton, Segmented, T } from '@/components/ui';
-import { CATEGORIES } from '@/data/catalog';
+import { CATEGORIES, categoryOf } from '@/data/catalog';
 import { allPlaces, getPlace, PROVINCE_CENTER } from '@/data/places';
 import { useCommunityPlaces } from '@/lib/community';
 import { formatDuration, useRouteFrom } from '@/lib/directions';
 import { applyFilters } from '@/lib/filter';
 import { distanceM, formatDistance, openDirections } from '@/lib/geo';
 import { useLocation } from '@/lib/location';
-import { DARK_MAP_STYLE, MAP_PROVIDER } from '@/lib/maps';
 import { useApp } from '@/lib/store';
-import { radius, useTheme } from '@/theme';
+import { categoryColors, radius, useTheme } from '@/theme';
 
 export default function MapScreen() {
-  const { c, isDark } = useTheme();
+  const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { t, L, lang, interests, update, filters, ratingFor } = useApp();
   const loc = useLocation();
   const params = useLocalSearchParams<{ focus?: string }>();
-  const map = useRef<MapView>(null);
-  const { mapType: offlineMapType, offline } = useOfflineMode();
-  const baseMapType = useBaseMapType('terrain');
+  const map = useRef<AppMapHandle>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const community = useCommunityPlaces();
@@ -41,7 +36,7 @@ export default function MapScreen() {
     setRouteFor(id);
     const p = getPlace(id);
     if (p && loc.coords)
-      map.current?.fitToCoordinates([loc.coords, p.coords], { edgePadding: { top: 180, right: 60, bottom: 320, left: 60 }, animated: true });
+      map.current?.fitToCoordinates([loc.coords, p.coords], { top: 180, right: 60, bottom: 320, left: 60 });
   };
 
   // Abrir el mapa enfocado en un lugar (/map?focus=id)
@@ -53,7 +48,7 @@ export default function MapScreen() {
   useEffect(() => {
     const p = params.focus ? getPlace(params.focus) : undefined;
     if (!p) return;
-    const id = setTimeout(() => map.current?.animateToRegion({ ...p.coords, latitudeDelta: 0.06, longitudeDelta: 0.06 }, 600), 300);
+    const id = setTimeout(() => map.current?.animateTo(p.coords, 0.06), 300);
     return () => clearTimeout(id);
   }, [params.focus]);
 
@@ -61,7 +56,7 @@ export default function MapScreen() {
     const coords = places.map((p) => p.coords);
     if (loc.coords) coords.push(loc.coords);
     if (coords.length)
-      map.current?.fitToCoordinates(coords, { edgePadding: { top: 160, right: 60, bottom: 260, left: 60 }, animated: true });
+      map.current?.fitToCoordinates(coords, { top: 160, right: 60, bottom: 260, left: 60 });
   };
 
   const goToMe = async () => {
@@ -69,51 +64,40 @@ export default function MapScreen() {
       const ok = await loc.request();
       if (!ok) return;
     }
-    if (loc.coords) map.current?.animateToRegion({ ...loc.coords, latitudeDelta: 0.08, longitudeDelta: 0.08 }, 600);
+    if (loc.coords) map.current?.animateTo(loc.coords, 0.08);
   };
 
   const select = (id: string) => {
     setSelectedId(id);
     const p = getPlace(id)!;
-    map.current?.animateToRegion(
-      { latitude: p.coords.latitude - 0.012, longitude: p.coords.longitude, latitudeDelta: 0.08, longitudeDelta: 0.08 },
-      500,
-    );
+    map.current?.animateTo({ latitude: p.coords.latitude - 0.012, longitude: p.coords.longitude }, 0.08);
   };
 
   const dist = selected && loc.coords ? distanceM(loc.coords, selected.coords) : null;
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <MapView
+      <AppMap
         ref={map}
-        provider={MAP_PROVIDER}
-        style={StyleSheet.absoluteFill}
-        initialRegion={{ ...PROVINCE_CENTER, latitudeDelta: 0.45, longitudeDelta: 0.45 }}
-        showsUserLocation={loc.status === 'granted'}
-        showsMyLocationButton={false}
-        showsCompass={false}
-        toolbarEnabled={false}
-        customMapStyle={isDark ? DARK_MAP_STYLE : []}
-        mapType={baseMapType === 'none' ? 'none' : offline ? offlineMapType : 'terrain'}
-        onMapReady={fitAll}
-        onPress={(e) => e.nativeEvent.action !== 'marker-press' && setSelectedId(null)}
-      >
-        <BaseMapLayer />
-        <OfflineTileLayer provider={MAP_PROVIDER} />
-        {places.map((p) => (
-          <PlaceMarker key={p.id} place={p} selected={p.id === selectedId} onPress={() => select(p.id)} />
-        ))}
-        {route && routePlace ? (
-          <Polyline
-            coordinates={route.points}
-            strokeColor={route.kind === 'google' ? c.water : c.primary}
-            strokeWidth={5}
-            lineDashPattern={route.kind === 'google' ? undefined : [10, 8]}
-          />
-        ) : null}
-      </MapView>
-      <BaseMapAttribution />
+        initialRegion={{ ...PROVINCE_CENTER, latitudeDelta: 0.45 }}
+        userLocation={loc.status === 'granted' ? loc.coords : null}
+        markers={places.map((p) => ({
+          id: p.id,
+          coords: p.coords,
+          color: categoryColors[p.categories[0]] ?? c.secondary,
+          icon: categoryOf(p.categories[0]).icon,
+          title: p.name,
+          selected: p.id === selectedId,
+        }))}
+        lines={
+          route && routePlace
+            ? [{ coords: route.points, color: route.kind === 'google' ? c.water : c.primary, width: 5, dashed: route.kind !== 'google' }]
+            : []
+        }
+        onReady={fitAll}
+        onMarkerPress={select}
+        onMapPress={() => setSelectedId(null)}
+      />
 
       {/* Barra superior */}
       <View style={[styles.topBar, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">

@@ -164,7 +164,7 @@ export default function Profile() {
                 </T>
               </Pressable>
             ))}
-            <T v="small" color={c.textSec}>© OpenStreetMap contributors · © CARTO · © OpenTopoMap</T>
+            <T v="small" color={c.textSec}>Mapas: © Google (Expo Go) · © Esri · © OpenStreetMap contributors · © OpenTopoMap</T>
           </View>
         ) : null}
         <Row icon="information-outline" label={t('about')} onPress={() => setShowAbout(!showAbout)}>

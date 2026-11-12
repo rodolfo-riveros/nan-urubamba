@@ -15,7 +15,9 @@ import { useTheme } from '@/theme';
 const extra = (Constants.expoConfig?.extra ?? {}) as { hasGoogleMapsKey?: boolean };
 // En Expo Go el mapa de Google ya funciona (Expo Go trae su propia key): no hace falta el mapa libre.
 const IN_EXPO_GO = isRunningInExpoGo();
-export const USE_FREE_BASEMAP = Platform.OS === 'android' && !IN_EXPO_GO && !extra.hasGoogleMapsKey;
+// EXPO_PUBLIC_FORCE_LEAFLET=1 fuerza el mapa Leaflet (para probarlo en Expo Go)
+export const USE_FREE_BASEMAP =
+  process.env.EXPO_PUBLIC_FORCE_LEAFLET === '1' || (Platform.OS === 'android' && !IN_EXPO_GO && !extra.hasGoogleMapsKey);
 
 const LIGHT = 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
 const DARK = 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
@@ -56,7 +58,7 @@ export function BaseMapAttribution({ style }: { style?: StyleProp<ViewStyle> }) 
   if (!USE_FREE_BASEMAP) return null;
   return (
     <View pointerEvents="none" style={[styles.attr, { backgroundColor: isDark ? 'rgba(20,18,16,0.7)' : 'rgba(255,255,255,0.8)' }, style]}>
-      <Text style={[styles.text, { color: c.textSec }]}>© OpenStreetMap · © CARTO</Text>
+      <Text style={[styles.text, { color: c.textSec }]}>© Esri</Text>
     </View>
   );
 }
